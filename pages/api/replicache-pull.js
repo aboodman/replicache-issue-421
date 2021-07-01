@@ -1,5 +1,4 @@
 export default async (req, res) => {
-  res.status(500).done();
   res.json({
     // We will discuss these two fields in later steps.
     lastMutationID: 0,

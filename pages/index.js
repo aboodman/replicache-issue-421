@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Replicache} from 'replicache';
 import {useSubscribe} from 'replicache-react';
+import {nanoid} from 'nanoid';
 
 export default function Home() {
   const [rep, setRep] = useState(null);
@@ -13,6 +14,15 @@ export default function Home() {
       // symbols and additional debugging info. The .wasm version is smaller
       // and faster.
       wasmModule: '/replicache.dev.wasm',
+      mutators: {
+        async createMessage(tx, {id, from, content, order}) {
+          await tx.put(`message/${id}`, {
+            from,
+            content,
+            order,
+          });
+        },
+      },
     });
     listen(rep);
     setRep(rep);
@@ -40,7 +50,15 @@ function Chat({rep}) {
 
   const onSubmit = e => {
     e.preventDefault();
-    // TODO: Create message
+    const last = messages.length && messages[messages.length - 1][1];
+    const order = (last?.order ?? 0) + 1;
+    rep.mutate.createMessage({
+      id: nanoid(),
+      from: usernameRef.current.value,
+      content: contentRef.current.value,
+      order,
+    });
+    contentRef.current.value = '';
   };
 
   return (
